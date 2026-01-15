@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>No Fluff January Challenge - KPI Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0D0D0D 0%, #1A1A2E 50%, #16213E 100%);
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: #FFFFFF;
+      padding: 30px 20px;
+      position: relative;
+    }
+
+    .bg-glow-1 {
+      position: fixed;
+      top: -50%;
+      right: -20%;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-glow-2 {
+      position: fixed;
+      bottom: -30%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 0, 110, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 24px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 100px;
+      margin-bottom: 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #00D4FF;
+    }
+
+    .main-title {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+      text-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
+    }
+
+    .subtitle {
+      font-size: clamp(16px, 2.5vw, 22px);
+      font-weight: 300;
+      margin-top: 8px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 4px;
+    }
+
+    .gradient-bar {
+      height: 3px;
+      width: 200px;
+      margin: 20px auto;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #00D4FF, #FF006E, #7B2CBF, #2EC4B6);
+      background-size: 300% 100%;
+      animation: gradientMove 8s ease infinite;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    input, select {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: #00D4FF;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    select option {
+      background: #1A1A2E;
+      color: #fff;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 24px;
+      color: #000;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.2);
+      box-shadow: none;
+    }
+
+    /* Date inputs */
+    .date-range {
+      display: none;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .date-range.visible {
+      display: flex;
+    }
+
+    .date-range input {
+      width: 140px;
+    }
+
+    /* Loading State */
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #00D4FF;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tab:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .tab.active {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: rgba(0, 212, 255, 0.4);
+      color: #00D4FF;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-title {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .stat-card.cyan::before { background: #00D4FF; }
+    .stat-card.orange::before { background: #FF6B35; }
+    .stat-card.purple::before { background: #7B2CBF; }
+    .stat-card.teal::before { background: #2EC4B6; }
+    .stat-card.pink::before { background: #FF006E; }
+    .stat-card.yellow::before { background: #FFD93D; }
+    .stat-card.green::before { background: #6BCB77; }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      font-family: 'Space Mono', monospace;
+      margin-bottom: 6px;
+    }
+
+    .stat-value.cyan { color: #00D4FF; }
+    .stat-value.orange { color: #FF6B35; }
+    .stat-value.purple { color: #7B2CBF; }
+    .stat-value.teal { color: #2EC4B6; }
+    .stat-value.pink { color: #FF006E; }
+    .stat-value.yellow { color: #FFD93D; }
+    .stat-value.green { color: #6BCB77; }
+
+    .stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+    }
+
+    /* Personal Section */
+    .personal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .personal-id {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .personal-id span {
+      color: #00D4FF;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .personal-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .personal-team {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .personal-team.builders {
+      background: rgba(123, 44, 191, 0.2);
+      color: #7B2CBF;
+    }
+
+    .personal-team.first-check {
+      background: rgba(46, 196, 182, 0.2);
+      color: #2EC4B6;
+    }
+
+    .personal-team.sub-team {
+      background: rgba(255, 107, 53, 0.2);
+      color: #FF6B35;
+    }
+
+    /* Leaderboards */
+    .leaderboards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .leaderboard {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .leaderboard-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .leaderboard-title .icon {
+      font-size: 18px;
+    }
+
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .leaderboard-item:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .leaderboard-item.gold {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
+    .leaderboard-item.silver {
+      background: linear-gradient(135deg, rgba(192, 192, 192, 0.15) 0%, rgba(192, 192, 192, 0.05) 100%);
+      border: 1px solid rgba(192, 192, 192, 0.3);
+    }
+
+    .leaderboard-item.bronze {
+      background: linear-gradient(135deg, rgba(205, 127, 50, 0.15) 0%, rgba(205, 127, 50, 0.05) 100%);
+      border: 1px solid rgba(205, 127, 50, 0.3);
+    }
+
+    .leaderboard-item.highlight {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 212, 255, 0.05) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.4);
+    }
+
+    .rank {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+    }
+
+    .rank.gold { background: #FFD700; color: #000; }
+    .rank.silver { background: #C0C0C0; color: #000; }
+    .rank.bronze { background: #CD7F32; color: #000; }
+
+    .player-id {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .player-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* Team Battle */
+    .team-battle {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 30px;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .team-battle {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+    }
+
+    .team-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .team-card.builders {
+      border-color: rgba(123, 44, 191, 0.3);
+    }
+
+    .team-card.first-check {
+      border-color: rgba(46, 196, 182, 0.3);
+    }
+
+    .team-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .team-name.builders { color: #7B2CBF; }
+    .team-name.first-check { color: #2EC4B6; }
+
+    .team-members {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 20px;
+    }
+
+    .team-stat {
+      margin-bottom: 12px;
+    }
+
+    .team-stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .team-stat-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1px;
+    }
+
+    .vs-badge {
+      font-size: 24px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.3);
+      padding: 20px;
+    }
+
+    /* Sub-team Battle Grid */
+    .sub-team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 30px;
+    }
+
+    .sub-team-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .sub-team-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    .sub-team-card.rank-1 {
+      border-color: rgba(255, 215, 0, 0.5);
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.02) 100%);
+    }
+
+    .sub-team-card.rank-2 {
+      border-color: rgba(192, 192, 192, 0.5);
+      background: linear-gradient(135deg, rgba(192, 192, 192, 0.1) 0%, rgba(192, 192, 192, 0.02) 100%);
+    }
+
+    .sub-team-card.rank-3 {
+      border-color: rgba(205, 127, 50, 0.5);
+      background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, rgba(205, 127, 50, 0.02) 100%);
+    }
+
+    .sub-team-rank {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .sub-team-rank.gold { background: #FFD700; color: #000; }
+    .sub-team-rank.silver { background: #C0C0C0; color: #000; }
+    .sub-team-rank.bronze { background: #CD7F32; color: #000; }
+    .sub-team-rank.default { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+
+    .sub-team-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .sub-team-members {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 16px;
+    }
+
+    .sub-team-kpi {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: 'Space Mono', monospace;
+      color: #00D4FF;
+    }
+
+    .sub-team-kpi-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1px;
+    }
+
+    /* Group Overview */
+    .group-totals {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .total-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .total-value {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: 'Space Mono', monospace;
+      color: #00D4FF;
+    }
+
+    .total-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    /* Section headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      margin-top: 30px;
+    }
+
+    .section-header:first-child {
+      margin-top: 0;
+    }
+
+    .section-number {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: rgba(0, 212, 255, 0.1);
+      color: #00D4FF;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* Sub-section toggle */
+    .toggle-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .toggle-btn.active {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: rgba(0, 212, 255, 0.4);
+      color: #00D4FF;
+    }
+
+    /* No Data */
+    .no-data {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .no-data-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .leaderboards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .footer-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* Refresh indicator */
+    .last-updated {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 20px;
+    }
+
+    /* My Team Section in Personal */
+    .my-team-section {
+      background: rgba(255, 107, 53, 0.05);
+      border: 1px solid rgba(255, 107, 53, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 30px;
+    }
+
+    .my-team-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FF6B35;
+      margin-bottom: 16px;
+    }
+
+    .my-team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .teammate-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .teammate-card.you {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .teammate-id {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .teammate-stat {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: 'Space Mono', monospace;
+      color: #FF6B35;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="badge">JANUARY 2026 CHALLENGE</div>
+      <h1 class="main-title">NO FLUFF</h1>
+      <h2 class="subtitle">KPI DASHBOARD</h2>
+      <div class="gradient-bar"></div>
+    </header>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-group">
+        <label class="control-label">Your ID</label>
+        <input type="text" id="userId" placeholder="Enter your ID" style="width: 120px;">
+        <button class="btn" onclick="loadPersonalStats()">View My Stats</button>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Time Range</label>
+        <select id="dateFilter" onchange="handleDateFilterChange()">
+          <option value="all">All Time</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+
+      <div class="date-range" id="customDateRange">
+        <input type="date" id="startDate">
+        <span style="color: rgba(255,255,255,0.4)">to</span>
+        <input type="date" id="endDate">
+        <button class="btn btn-secondary" onclick="applyCustomDateRange()">Apply</button>
+      </div>
+
+      <button class="btn btn-secondary" onclick="refreshData()">↻ Refresh</button>
+    </div>
+
+    <div class="last-updated" id="lastUpdated"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="overview" onclick="switchTab('overview')">📊 Group Overview</div>
+      <div class="tab" data-tab="personal" onclick="switchTab('personal')">👤 My Stats</div>
+      <div class="tab" data-tab="leaderboards" onclick="switchTab('leaderboards')">🏆 Leaderboards</div>
+      <div class="tab" data-tab="teams" onclick="switchTab('teams')">⚔️ Team Battle</div>
+      <div class="tab" data-tab="subteams" onclick="switchTab('subteams')">👥 Sub-Teams</div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loading">
+      <div class="loading-spinner"></div>
+      <p>Loading challenge data...</p>
+    </div>
+
+    <!-- Content Sections -->
+    <div id="content" class="hidden">
+      
+      <!-- Overview Tab -->
+      <div id="tab-overview" class="tab-content">
+        <div class="section-header">
+          <span class="section-number">01</span>
+          <h3 class="section-title">GROUP TOTALS</h3>
+        </div>
+        
+        <div class="group-totals" id="groupTotals"></div>
+
+        <div class="section-header">
+          <span class="section-number">02</span>
+          <h3 class="section-title">PARTICIPATION</h3>
+        </div>
+
+        <div class="stats-grid" id="participationStats"></div>
+      </div>
+
+      <!-- Personal Tab -->
+      <div id="tab-personal" class="tab-content hidden">
+        <div id="personalContent">
+          <div class="no-data">
+            <div class="no-data-icon">🔍</div>
+            <p>Enter your Unique ID above and click "View My Stats" to see your personal dashboard</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaderboards Tab -->
+      <div id="tab-leaderboards" class="tab-content hidden">
+        <div class="section-header">
+          <span class="section-number">🏆</span>
+          <h3 class="section-title">TOP PERFORMERS</h3>
+        </div>
+        <div class="leaderboards-grid" id="leaderboards"></div>
+      </div>
+
+      <!-- Teams Tab -->
+      <div id="tab-teams" class="tab-content hidden">
+        <div class="section-header">
+          <span class="section-number">⚔️</span>
+          <h3 class="section-title">TEAM BATTLE</h3>
+        </div>
+        <div id="teamBattle"></div>
+      </div>
+
+      <!-- Sub-Teams Tab -->
+      <div id="tab-subteams" class="tab-content hidden">
+        <div class="section-header">
+          <span class="section-number">👥</span>
+          <h3 class="section-title">SUB-TEAM RANKINGS</h3>
+        </div>
+        
+        <div class="toggle-group" id="subTeamKpiToggle"></div>
+        
+        <div id="subTeamRankings"></div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-text">NO FLUFF PROGRAM © JANUARY KICKOFF CHALLENGE</div>
+    </footer>
+  </div>
+
+  <script>
+    // Configuration
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRyx4HKgf3-WqX-0T3_sVM7rOOs4FMPELnzyaKVfxFrE78b4FTGPg4ZttdIR4tnDm-4LhfKvtpZ2g5P/pub?output=csv';
+    
+    // Column mappings (matching your sheet headers)
+    const COLUMNS = {
+      timestamp: 'Timestamp',
+      uniqueId: 'Your Unique ID Number',
+      date: 'Date',
+      team: 'Your Team',
+      subTeam: 'Whats your team #?',
+      messagesSent: 'Total Messages Sent',
+      messagesReceived: 'Total Messages Received',
+      tier1s: 'Total Tier 1s',
+      offMarketLeads: 'Total Off-Market Leads',
+      offersMade: 'Total Offers Made',
+      contractsSigned: 'Total Contracts Signed',
+      dealsClosed: 'Total Signed Deals Assigned'
+    };
+
+    // KPI Definitions
+    const KPIs = [
+      { key: 'messagesSent', column: COLUMNS.messagesSent, label: 'Messages Sent', icon: '💬', color: 'cyan' },
+      { key: 'messagesReceived', column: COLUMNS.messagesReceived, label: 'Messages Received', icon: '📥', color: 'orange' },
+      { key: 'tier1s', column: COLUMNS.tier1s, label: 'Tier 1s', icon: '⭐', color: 'purple' },
+      { key: 'offMarketLeads', column: COLUMNS.offMarketLeads, label: 'Off-Market Leads', icon: '🎯', color: 'teal' },
+      { key: 'offersMade', column: COLUMNS.offersMade, label: 'Offers Made', icon: '📝', color: 'pink' },
+      { key: 'contractsSigned', column: COLUMNS.contractsSigned, label: 'Contracts Signed', icon: '✍️', color: 'yellow' },
+      { key: 'dealsClosed', column: COLUMNS.dealsClosed, label: 'Deals Closed', icon: '🏆', color: 'green' }
+    ];
+
+    // State
+    let rawData = [];
+    let filteredData = [];
+    let currentTab = 'overview';
+    let currentUserId = null;
+    let currentSubTeamKpi = 'messagesSent';
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      
+      // Set default dates for custom range
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      document.getElementById('startDate').value = formatDateForInput(startOfMonth);
+      document.getElementById('endDate').value = formatDateForInput(today);
+    });
+
+    // Load data from Google Sheets
+    async function loadData() {
+      const corsProxies = [
+        'https://corsproxy.io/?',
+        'https://api.allorigins.win/raw?url='
+      ];
+      
+      let lastError = null;
+      
+      for (const proxy of corsProxies) {
+        try {
+          const url = proxy + encodeURIComponent(SHEET_CSV_URL);
+          const response = await fetch(url);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          
+          const csvText = await response.text();
+          
+          if (!csvText || csvText.length < 50) {
+            throw new Error('Empty response');
+          }
+          
+          rawData = parseCSV(csvText);
+          
+          if (rawData.length === 0) {
+            throw new Error('No data parsed');
+          }
+          
+          filteredData = [...rawData];
+          
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('content').classList.remove('hidden');
+          
+          updateLastUpdated();
+          renderSubTeamKpiToggle();
+          applyDateFilter();
+          return; // Success!
+          
+        } catch (error) {
+          console.warn(`Proxy ${proxy} failed:`, error);
+          lastError = error;
+        }
+      }
+      
+      // All proxies failed
+      console.error('All proxies failed:', lastError);
+      document.getElementById('loading').innerHTML = `
+        <div class="no-data-icon">⚠️</div>
+        <p>Error loading data. Please try again.</p>
+        <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 10px;">
+          If this persists, make sure the Google Sheet is published to web.
+        </p>
+        <button class="btn" onclick="location.reload()" style="margin-top: 20px;">Retry</button>
+      `;
+    }
+
+    // Parse CSV
+    function parseCSV(csv) {
+      const lines = csv.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      
+      return lines.slice(1)
+        .filter(line => line.trim())
+        .map(line => {
+          const values = parseCSVLine(line);
+          const row = {};
+          headers.forEach((header, i) => {
+            row[header] = values[i] || '';
+          });
+          return row;
+        })
+        .filter(row => row[COLUMNS.uniqueId]); // Filter out rows without ID
+    }
+
+    // Parse CSV line handling commas in quotes
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    // Get value from row using column name
+    function getValue(row, columnName) {
+      return row[columnName] || '';
+    }
+
+    function getNumericValue(row, columnName) {
+      return parseInt(row[columnName]) || 0;
+    }
+
+    // Date handling
+    function parseDate(dateStr) {
+      if (!dateStr) return null;
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        return new Date(parts[2], parts[0] - 1, parts[1]);
+      }
+      return new Date(dateStr);
+    }
+
+    function formatDateForInput(date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    function handleDateFilterChange() {
+      const filter = document.getElementById('dateFilter').value;
+      const customRange = document.getElementById('customDateRange');
+      
+      if (filter === 'custom') {
+        customRange.classList.add('visible');
+      } else {
+        customRange.classList.remove('visible');
+        applyDateFilter();
+      }
+    }
+
+    function applyCustomDateRange() {
+      applyDateFilter();
+    }
+
+    function applyDateFilter() {
+      const filter = document.getElementById('dateFilter').value;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      let startDate = null;
+      let endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+
+      switch (filter) {
+        case 'today':
+          startDate = new Date(today);
+          break;
+        case 'week':
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - today.getDay());
+          break;
+        case 'month':
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          break;
+        case 'custom':
+          startDate = new Date(document.getElementById('startDate').value);
+          endDate = new Date(document.getElementById('endDate').value);
+          endDate.setHours(23, 59, 59, 999);
+          break;
+        default: // 'all'
+          startDate = null;
+      }
+
+      if (startDate) {
+        filteredData = rawData.filter(row => {
+          const rowDate = parseDate(getValue(row, COLUMNS.date));
+          if (!rowDate) return false;
+          return rowDate >= startDate && rowDate <= endDate;
+        });
+      } else {
+        filteredData = [...rawData];
+      }
+
+      renderCurrentTab();
+      if (currentUserId) {
+        loadPersonalStats();
+      }
+    }
+
+    // Tab switching
+    function switchTab(tab) {
+      currentTab = tab;
+      
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+      
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      
+      renderCurrentTab();
+    }
+
+    function renderCurrentTab() {
+      switch (currentTab) {
+        case 'overview':
+          renderOverview();
+          break;
+        case 'leaderboards':
+          renderLeaderboards();
+          break;
+        case 'teams':
+          renderTeamBattle();
+          break;
+        case 'subteams':
+          renderSubTeamRankings();
+          break;
+      }
+    }
+
+    // Render Overview
+    function renderOverview() {
+      // Group totals
+      const totals = {};
+      KPIs.forEach(kpi => totals[kpi.key] = 0);
+      
+      filteredData.forEach(row => {
+        KPIs.forEach(kpi => {
+          totals[kpi.key] += getNumericValue(row, kpi.column);
+        });
+      });
+
+      const totalsHtml = KPIs.map(kpi => `
+        <div class="total-card">
+          <div class="total-value">${totals[kpi.key].toLocaleString()}</div>
+          <div class="total-label">${kpi.icon} ${kpi.label}</div>
+        </div>
+      `).join('');
+      
+      document.getElementById('groupTotals').innerHTML = totalsHtml;
+
+      // Participation stats
+      const uniqueUsers = new Set(filteredData.map(r => getValue(r, COLUMNS.uniqueId))).size;
+      const totalSubmissions = filteredData.length;
+      const uniqueDays = new Set(filteredData.map(r => getValue(r, COLUMNS.date))).size;
+      const avgPerUser = uniqueUsers > 0 ? Math.round(totalSubmissions / uniqueUsers) : 0;
+
+      document.getElementById('participationStats').innerHTML = `
+        <div class="stat-card cyan">
+          <div class="stat-value cyan">${uniqueUsers}</div>
+          <div class="stat-label">Active Participants</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-value orange">${totalSubmissions}</div>
+          <div class="stat-label">Total Submissions</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-value purple">${uniqueDays}</div>
+          <div class="stat-label">Days of Data</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-value teal">${avgPerUser}</div>
+          <div class="stat-label">Avg Submissions/User</div>
+        </div>
+      `;
+    }
+
+    // Render Leaderboards
+    function renderLeaderboards() {
+      // Aggregate by user
+      const userTotals = {};
+      
+      filteredData.forEach(row => {
+        const id = getValue(row, COLUMNS.uniqueId);
+        if (!userTotals[id]) {
+          userTotals[id] = { 
+            team: getValue(row, COLUMNS.team),
+            subTeam: getValue(row, COLUMNS.subTeam)
+          };
+          KPIs.forEach(kpi => userTotals[id][kpi.key] = 0);
+        }
+        KPIs.forEach(kpi => {
+          userTotals[id][kpi.key] += getNumericValue(row, kpi.column);
+        });
+      });
+
+      const leaderboardsHtml = KPIs.map(kpi => {
+        const sorted = Object.entries(userTotals)
+          .map(([id, data]) => ({ id, value: data[kpi.key], team: data.team, subTeam: data.subTeam }))
+          .filter(u => u.value > 0)
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 10);
+
+        const itemsHtml = sorted.map((user, i) => {
+          let rankClass = '';
+          let itemClass = '';
+          if (i === 0) { rankClass = 'gold'; itemClass = 'gold'; }
+          else if (i === 1) { rankClass = 'silver'; itemClass = 'silver'; }
+          else if (i === 2) { rankClass = 'bronze'; itemClass = 'bronze'; }
+
+          const isCurrentUser = currentUserId && user.id === currentUserId;
+          if (isCurrentUser) itemClass += ' highlight';
+
+          return `
+            <div class="leaderboard-item ${itemClass}">
+              <div class="rank ${rankClass}">${i + 1}</div>
+              <div class="player-id">ID: ${user.id}${user.subTeam ? ` <span style="font-size:11px;color:rgba(255,255,255,0.4)">(${user.subTeam})</span>` : ''}</div>
+              <div class="player-value" style="color: var(--${kpi.color}, #00D4FF)">${user.value.toLocaleString()}</div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="leaderboard">
+            <div class="leaderboard-title">
+              <span class="icon">${kpi.icon}</span>
+              ${kpi.label}
+            </div>
+            ${itemsHtml || '<div style="color: rgba(255,255,255,0.3); text-align: center; padding: 20px;">No data yet</div>'}
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('leaderboards').innerHTML = leaderboardsHtml;
+    }
+
+    // Render Team Battle
+    function renderTeamBattle() {
+      const teams = {
+        'Builders': { members: new Set(), totals: {} },
+        'First Check Club': { members: new Set(), totals: {} }
+      };
+
+      KPIs.forEach(kpi => {
+        teams['Builders'].totals[kpi.key] = 0;
+        teams['First Check Club'].totals[kpi.key] = 0;
+      });
+
+      filteredData.forEach(row => {
+        const team = getValue(row, COLUMNS.team);
+        if (teams[team]) {
+          teams[team].members.add(getValue(row, COLUMNS.uniqueId));
+          KPIs.forEach(kpi => {
+            teams[team].totals[kpi.key] += getNumericValue(row, kpi.column);
+          });
+        }
+      });
+
+      const buildersStats = KPIs.map(kpi => `
+        <div class="team-stat">
+          <div class="team-stat-value" style="color: #7B2CBF">${teams['Builders'].totals[kpi.key].toLocaleString()}</div>
+          <div class="team-stat-label">${kpi.icon} ${kpi.label}</div>
+        </div>
+      `).join('');
+
+      const fccStats = KPIs.map(kpi => `
+        <div class="team-stat">
+          <div class="team-stat-value" style="color: #2EC4B6">${teams['First Check Club'].totals[kpi.key].toLocaleString()}</div>
+          <div class="team-stat-label">${kpi.icon} ${kpi.label}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('teamBattle').innerHTML = `
+        <div class="team-battle">
+          <div class="team-card builders">
+            <div class="team-name builders">BUILDERS</div>
+            <div class="team-members">${teams['Builders'].members.size} Members</div>
+            ${buildersStats}
+          </div>
+          <div class="vs-badge">VS</div>
+          <div class="team-card first-check">
+            <div class="team-name first-check">FIRST CHECK CLUB</div>
+            <div class="team-members">${teams['First Check Club'].members.size} Members</div>
+            ${fccStats}
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Sub-Team KPI Toggle
+    function renderSubTeamKpiToggle() {
+      const toggleHtml = KPIs.map(kpi => `
+        <button class="toggle-btn ${kpi.key === currentSubTeamKpi ? 'active' : ''}" 
+                onclick="setSubTeamKpi('${kpi.key}')">
+          ${kpi.icon} ${kpi.label}
+        </button>
+      `).join('');
+      
+      document.getElementById('subTeamKpiToggle').innerHTML = toggleHtml;
+    }
+
+    function setSubTeamKpi(kpiKey) {
+      currentSubTeamKpi = kpiKey;
+      renderSubTeamKpiToggle();
+      renderSubTeamRankings();
+    }
+
+    // Render Sub-Team Rankings
+    function renderSubTeamRankings() {
+      const subTeams = {};
+      
+      filteredData.forEach(row => {
+        const subTeam = getValue(row, COLUMNS.subTeam);
+        if (!subTeam) return;
+        
+        if (!subTeams[subTeam]) {
+          subTeams[subTeam] = { 
+            members: new Set(),
+            totals: {}
+          };
+          KPIs.forEach(kpi => subTeams[subTeam].totals[kpi.key] = 0);
+        }
+        
+        subTeams[subTeam].members.add(getValue(row, COLUMNS.uniqueId));
+        KPIs.forEach(kpi => {
+          subTeams[subTeam].totals[kpi.key] += getNumericValue(row, kpi.column);
+        });
+      });
+
+      const currentKpi = KPIs.find(k => k.key === currentSubTeamKpi);
+      
+      const sorted = Object.entries(subTeams)
+        .map(([name, data]) => ({
+          name,
+          members: data.members.size,
+          value: data.totals[currentSubTeamKpi],
+          totals: data.totals
+        }))
+        .sort((a, b) => b.value - a.value);
+
+      if (sorted.length === 0) {
+        document.getElementById('subTeamRankings').innerHTML = `
+          <div class="no-data">
+            <div class="no-data-icon">👥</div>
+            <p>No sub-team data yet</p>
+            <p style="font-size: 13px; margin-top: 10px; color: rgba(255,255,255,0.4)">
+              Sub-teams will appear once members submit their KPIs with a team number.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const cardsHtml = sorted.map((team, i) => {
+        let rankClass = '';
+        let cardClass = '';
+        if (i === 0) { rankClass = 'gold'; cardClass = 'rank-1'; }
+        else if (i === 1) { rankClass = 'silver'; cardClass = 'rank-2'; }
+        else if (i === 2) { rankClass = 'bronze'; cardClass = 'rank-3'; }
+        else { rankClass = 'default'; }
+
+        return `
+          <div class="sub-team-card ${cardClass}">
+            <div class="sub-team-rank ${rankClass}">#${i + 1}</div>
+            <div class="sub-team-name">${team.name}</div>
+            <div class="sub-team-members">${team.members} members</div>
+            <div class="sub-team-kpi">${team.value.toLocaleString()}</div>
+            <div class="sub-team-kpi-label">${currentKpi.icon} ${currentKpi.label}</div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('subTeamRankings').innerHTML = `
+        <div class="sub-team-grid">${cardsHtml}</div>
+      `;
+    }
+
+    // Load Personal Stats
+    function loadPersonalStats() {
+      const userId = document.getElementById('userId').value.trim();
+      if (!userId) {
+        alert('Please enter your Unique ID');
+        return;
+      }
+
+      currentUserId = userId;
+      const userRows = filteredData.filter(r => getValue(r, COLUMNS.uniqueId) === userId);
+
+      if (userRows.length === 0) {
+        document.getElementById('personalContent').innerHTML = `
+          <div class="no-data">
+            <div class="no-data-icon">🔍</div>
+            <p>No data found for ID: ${userId}</p>
+            <p style="font-size: 13px; margin-top: 10px; color: rgba(255,255,255,0.4)">Make sure you've submitted your KPIs and try adjusting the date filter.</p>
+          </div>
+        `;
+        switchTab('personal');
+        return;
+      }
+
+      // Calculate totals
+      const totals = {};
+      KPIs.forEach(kpi => totals[kpi.key] = 0);
+      
+      userRows.forEach(row => {
+        KPIs.forEach(kpi => {
+          totals[kpi.key] += getNumericValue(row, kpi.column);
+        });
+      });
+
+      const team = getValue(userRows[0], COLUMNS.team) || 'Unknown';
+      const subTeam = getValue(userRows[0], COLUMNS.subTeam) || '';
+      const teamClass = team === 'Builders' ? 'builders' : 'first-check';
+      const daysSubmitted = userRows.length;
+
+      // Calculate ranks
+      const userTotals = {};
+      filteredData.forEach(row => {
+        const id = getValue(row, COLUMNS.uniqueId);
+        if (!userTotals[id]) {
+          userTotals[id] = {};
+          KPIs.forEach(kpi => userTotals[id][kpi.key] = 0);
+        }
+        KPIs.forEach(kpi => {
+          userTotals[id][kpi.key] += getNumericValue(row, kpi.column);
+        });
+      });
+
+      const ranks = {};
+      KPIs.forEach(kpi => {
+        const sorted = Object.entries(userTotals)
+          .map(([id, data]) => ({ id, value: data[kpi.key] }))
+          .sort((a, b) => b.value - a.value);
+        const rank = sorted.findIndex(u => u.id === userId) + 1;
+        ranks[kpi.key] = rank;
+      });
+
+      const totalUsers = Object.keys(userTotals).length;
+
+      const statsHtml = KPIs.map(kpi => `
+        <div class="stat-card ${kpi.color}">
+          <div class="stat-value ${kpi.color}">${totals[kpi.key].toLocaleString()}</div>
+          <div class="stat-label">${kpi.icon} ${kpi.label}</div>
+          <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 8px;">
+            Rank: #${ranks[kpi.key]} of ${totalUsers}
+          </div>
+        </div>
+      `).join('');
+
+      // Get sub-team members
+      let subTeamHtml = '';
+      if (subTeam) {
+        const subTeamMembers = {};
+        filteredData.forEach(row => {
+          if (getValue(row, COLUMNS.subTeam) === subTeam) {
+            const memberId = getValue(row, COLUMNS.uniqueId);
+            if (!subTeamMembers[memberId]) {
+              subTeamMembers[memberId] = 0;
+            }
+            subTeamMembers[memberId] += getNumericValue(row, KPIs[0].column); // Messages sent for now
+          }
+        });
+
+        const sortedMembers = Object.entries(subTeamMembers)
+          .map(([id, value]) => ({ id, value }))
+          .sort((a, b) => b.value - a.value);
+
+        const membersHtml = sortedMembers.map(member => `
+          <div class="teammate-card ${member.id === userId ? 'you' : ''}">
+            <div class="teammate-id">${member.id === userId ? '⭐ You' : 'ID: ' + member.id}</div>
+            <div class="teammate-stat">${member.value.toLocaleString()}</div>
+          </div>
+        `).join('');
+
+        subTeamHtml = `
+          <div class="my-team-section">
+            <div class="my-team-header">👥 Your Sub-Team: ${subTeam}</div>
+            <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 16px;">
+              Messages Sent by team members
+            </p>
+            <div class="my-team-grid">${membersHtml}</div>
+          </div>
+        `;
+      }
+
+      document.getElementById('personalContent').innerHTML = `
+        <div class="personal-header">
+          <div class="personal-id">Participant <span>#${userId}</span></div>
+          <div class="personal-badges">
+            <div class="personal-team ${teamClass}">${team.toUpperCase()}</div>
+            ${subTeam ? `<div class="personal-team sub-team">${subTeam}</div>` : ''}
+          </div>
+        </div>
+        <div style="color: rgba(255,255,255,0.5); margin-bottom: 24px; font-size: 14px;">
+          ${daysSubmitted} days submitted in selected range
+        </div>
+        <div class="stats-grid">${statsHtml}</div>
+        ${subTeamHtml}
+      `;
+
+      switchTab('personal');
+    }
+
+    // Refresh data
+    function refreshData() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('content').classList.add('hidden');
+      loadData();
+    }
+
+    // Update last updated timestamp
+    function updateLastUpdated() {
+      const now = new Date();
+      document.getElementById('lastUpdated').textContent = `Last updated: ${now.toLocaleString()}`;
+    }
+  </script>
+</body>
+</html>
